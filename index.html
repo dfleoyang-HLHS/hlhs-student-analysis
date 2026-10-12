@@ -238,6 +238,8 @@ table.gcorr td.heat{border-bottom:2px solid var(--surface);border-left:2px solid
     <button type="button" role="tab" id="tab-exam" aria-controls="view-exam">入學成績</button>
     <button type="button" role="tab" id="tab-gsat" aria-controls="view-gsat">會考與學測</button>
     <button type="button" role="tab" id="tab-gyears" aria-controls="view-gyears">學測各屆表現</button>
+    <button type="button" role="tab" id="tab-admit" aria-controls="view-admit">大學錄取</button>
+    <button type="button" role="tab" id="tab-inspire" aria-controls="view-inspire">逆轉勝</button>
   </nav>
 
   <p class="privacy" id="privacy"></p>
@@ -434,6 +436,63 @@ table.gcorr td.heat{border-bottom:2px solid var(--surface);border-left:2px solid
       </section>
       <section class="panel"><div><h2 id="gyOneProgH">各班別表現</h2><p class="sub">依上方選擇的科目；不受班別篩選影響（人數少的班別請保守解讀）</p></div><div class="tablewrap"><table id="gyOneProg" class="cmp"></table></div></section>
     </div>
+  </div>
+
+
+  <!-- ===== 大學錄取（admit.view.html，內部版與公開版共用） ===== -->
+  <div class="view" id="view-admit" role="tabpanel" aria-labelledby="tab-admit" hidden>
+    <div class="filters" role="group" aria-label="大學錄取篩選">
+      <div class="fgroup"><label class="flabel" for="adYear">榜單學年度</label><select id="adYear"></select></div>
+    </div>
+    <p class="exam-note" id="adNote"></p>
+    <section class="tiles" id="adTiles" aria-label="大學錄取摘要"></section>
+    <section class="panel comp">
+      <div><h2>各年國立大學錄取比例</h2><p class="sub">國立含市立大學、軍校、警校；每人只算一次，歸入最「公立」的一類；分母為當年榜單上的錄取人數</p></div>
+      <div class="legend" id="adTypeLegend"></div>
+      <div class="axis" aria-hidden="true"><span></span><div class="ticks" id="adYTicks"></div><span></span></div>
+      <div class="bars" id="adYears"></div>
+      <div class="tablewrap"><table id="adYearTbl" class="cmp"></table></div>
+    </section>
+    <div id="adOne" style="display:grid;gap:28px" hidden>
+      <div class="grid2">
+        <section class="panel">
+          <div><h2 id="adUniH">錄取學校</h2><p class="sub" id="adUniSub"></p></div>
+          <div class="axis" aria-hidden="true"><span></span><div class="ticks" id="adUTicks"></div><span></span></div>
+          <div class="bars" id="adUnis"></div>
+        </section>
+        <div class="side">
+          <section class="panel"><div><h2>錄取管道</h2><p class="sub">以人計；一人有多個管道時各算一次</p></div><div class="clist" id="adCh"></div></section>
+          <section class="panel"><div><h2>各班別</h2><p class="sub" id="adProgSub"></p></div><div class="tablewrap"><table id="adProg" class="cmp"></table></div></section>
+        </div>
+      </div>
+      <div class="grid2">
+        <section class="panel"><div><h2>醫學系</h2><p class="sub">含公私立；不含中醫、牙醫、獸醫等系</p></div><div class="tablewrap"><table id="adMed" class="cmp"></table></div></section>
+        <section class="panel"><div><h2>藥學系</h2><p class="sub">含公私立</p></div><div class="tablewrap"><table id="adPharm" class="cmp"></table></div></section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 逆轉勝（admit.view.html） ===== -->
+  <div class="view" id="view-inspire" role="tabpanel" aria-labelledby="tab-inspire" hidden>
+    <section class="panel inspire-hero" id="inHero"></section>
+    <div class="filters" role="group" aria-label="逆轉勝篩選">
+      <div class="fgroup"><label class="flabel" for="inYear">入學屆別</label><select id="inYear"></select></div>
+    </div>
+    <p class="exam-note" id="inNote"></p>
+    <section class="pcards" id="inCards" aria-label="三種學生的國立大學錄取情況"></section>
+    <section class="panel">
+      <div><h2>每一種起點，都有人考上國立大學</h2><p class="sub" id="inBandSub"></p></div>
+      <div class="axis" aria-hidden="true"><span></span><div class="ticks" id="inBTicks"></div><span></span></div>
+      <div class="bars" id="inBands"></div>
+    </section>
+    <div class="grid2">
+      <section class="panel"><div><h2>單科拿 C，也考上國立</h2><p class="sub">會考該科為 C 的學生中，畢業當年考上國立大學（含市立、軍警）的人數</p></div><div class="tablewrap"><table id="inSubj" class="cmp"></table></div></section>
+      <section class="panel"><div><h2>特殊管道入學的學生</h2><p class="sub">沒有會考成績者（體育班、音樂班、重讀等），依班別</p></div><div class="tablewrap"><table id="inProg" class="cmp"></table></div></section>
+    </div>
+    <section class="panel" id="inDestPanel">
+      <div><h2>他們考上了這些國立大學</h2><p class="sub" id="inDestSub"></p></div>
+      <div class="grid2" id="inDest"></div>
+    </section>
   </div>
 
 
@@ -692,6 +751,142 @@ const GYT = (()=>{
     try{ localStorage.setItem('gyt', JSON.stringify(S)); }catch(e){}
   }
   return {render, lede: ()=>`比較 ${EY[0]}–${EY[L]} 年 ${Y.length} 屆學測（${Y[0]}–${Y[L]} 學年度入學的畢業生），也可以在「學測年度」選單選擇單一年度，與大考中心公布的全國五標比較。`};
+})();
+</script>
+
+<style>
+.inspire-hero{background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, var(--surface)), var(--surface));border-color:color-mix(in srgb, var(--accent) 35%, var(--line))}
+.inspire-hero .big{font-family:"Noto Serif TC","Songti TC",serif;font-weight:900;font-size:clamp(40px,8vw,64px);line-height:1;color:var(--accent)}
+.inspire-hero .big small{font-size:.4em;color:var(--ink-2);font-weight:700;margin-left:6px}
+.inspire-hero h2{font-size:clamp(20px,3vw,26px)}
+.inspire-hero p{margin:0;color:var(--ink-2);max-width:62ch}
+.inspire-hero .quote{font-family:"Noto Serif TC","Songti TC",serif;font-size:17px;color:var(--ink);border-left:3px solid var(--accent);padding-left:12px}
+.row.hi .name{font-weight:700}
+.destcol h3{font-size:15px;margin:0 0 8px}
+.destcol ul{margin:0;padding-left:1.2em;display:grid;gap:4px;font-size:14px}
+.destcol li span{color:var(--ink-3);font-size:12.5px;margin-left:6px}
+</style>
+<script>
+/* 大學錄取、逆轉勝分頁（admit.module.html，內部版與公開版共用）。
+   資料由 admission_analytics.py 預先彙整；人數為 null 表示 1–2 人（公開版遮蔽）。
+   依賴主頁面提供的 bindTip / showTip / hideTip 與共用樣式。 */
+const ADM = (()=>{
+  const A = {"K":3,"detail":false,"years":[109,110,111,112,113,114],"types":["國立","市立","軍校","警校","私立"],"byYear":{"109":{"persons":362,"rows":362,"previous":0,"public":145,"publicPct":40.1,"types":{"國立":136,"市立":4,"軍校":5,"警校":0,"私立":217},"typesX":{"國立":136,"市立":4,"軍校":5,"警校":0,"私立":217},"med":4,"medPct":1.1,"pharm":4,"pharmPct":1.1,"ntu":8,"channels":[["申請入學",187],["分發入學",86],["繁星推薦",58],["獨立招生",9],["特殊選才",8],["四技二專",8],["軍警校院",5],["其他",1]],"unis":[["慈濟大學",25,"私立"],["國立東華大學",23,"國立"],["淡江大學",19,"私立"],["中國文化大學",16,"私立"],["輔仁大學",15,"私立"],["國立臺灣海洋大學",13,"國立"],["逢甲大學",11,"私立"],["中原大學",10,"私立"],["世新大學",10,"私立"],["國立臺北大學",9,"國立"],["國立臺灣師範大學",9,"國立"],["義守大學",9,"私立"],["銘傳大學",9,"私立"],["國立臺灣大學",8,"國立"],["國立成功大學",8,"國立"],["亞洲大學",8,"私立"],["長榮大學",8,"私立"],["國立中興大學",7,"國立"],["高雄醫學大學",7,"私立"],["元智大學",7,"私立"],["東海大學",7,"私立"],["國立交通大學",6,"國立"],["國立體育大學",6,"國立"],["實踐大學",6,"私立"],["中山醫學大學",5,"私立"],["國立清華大學",5,"國立"],["國立政治大學",5,"國立"],["國立中央大學",5,"國立"],["國立臺東大學",5,"國立"],["東吳大學",5,"私立"],["中華大學",5,"私立"],["國立中山大學",4,"國立"],["臺北市立大學",4,"市立"],["佛光大學",4,"私立"],["真理大學",4,"私立"],["長庚大學",3,"私立"],["臺北醫學大學",3,"私立"],["國立臺北教育大學",3,"國立"],["國立宜蘭大學",3,"國立"],["靜宜大學",3,"私立"],["大葉大學",3,"私立"],["嘉南藥理大學",3,"私立"],["國立中正大學",2,"國立"],["中國醫藥大學",2,"私立"],["國立高雄師範大學",2,"國立"],["國立嘉義大學",2,"國立"],["國立金門大學",2,"國立"],["國立高雄大學",2,"國立"],["陸軍軍官學校",2,"軍校"],["國防大學理工學院",1,"軍校"],["國防醫學院",1,"軍校"],["馬偕醫學院",1,"私立"],["國立彰化師範大學",1,"國立"],["國立臺北藝術學大學",1,"國立"],["國立臺灣藝術大學",1,"國立"],["國立屏東大學",1,"國立"],["國立臺南大學",1,"國立"],["國立聯合大學",1,"國立"],["海軍軍官學校",1,"軍校"],["國立澎湖科技大學",1,"國立"],["玄奘大學",1,"私立"],["華梵大學",1,"私立"],["開南大學",1,"私立"],["中華科技大學",1,"私立"],["明志科技大學",1,"私立"],["明新科技大學",1,"私立"],["慈濟科技大學",1,"私立"],["經國管理暨健康學院",1,"私立"],["輔英科技大學",1,"私立"]],"medList":[["中山醫學大學","醫學系",1],["國立臺灣大學","醫學系",1],["慈濟大學","醫學系",1],["慈濟大學","醫學系(原住民)",1]],"pharmList":[["中國醫藥大學","藥學系",1],["嘉南藥理大學","藥學系",1],["臺北醫學大學","藥學系藥學組",1],["高雄醫學大學","藥學系",1]],"linked":0,"byProg":[["普通班",0,0,null],["音樂班",0,0,null],["數理資優班",0,0,null],["體育班",0,0,null]]},"110":{"persons":377,"rows":382,"previous":0,"public":170,"publicPct":45.1,"types":{"國立":143,"市立":4,"軍校":21,"警校":2,"私立":211},"typesX":{"國立":143,"市立":4,"軍校":21,"警校":2,"私立":207},"med":0,"medPct":0.0,"pharm":3,"pharmPct":0.8,"ntu":11,"channels":[["申請入學",187],["分發入學",79],["繁星推薦",44],["特殊選才",24],["四技二專",18],["軍警校院",18],["獨立招生",8],["其他",4]],"unis":[["淡江大學",36,"私立"],["國立東華大學",29,"國立"],["中國文化大學",28,"私立"],["佛光大學",13,"私立"],["慈濟大學",12,"私立"],["國立臺灣大學",11,"國立"],["東吳大學",11,"私立"],["東海大學",10,"私立"],["世新大學",10,"私立"],["國立臺灣海洋大學",8,"國立"],["銘傳大學",8,"私立"],["國立臺灣師範大學",7,"國立"],["國防大學理工學院",7,"軍校"],["輔仁大學",7,"私立"],["長庚大學",6,"私立"],["國立成功大學",6,"國立"],["國立清華大學",6,"國立"],["國立中央大學",6,"國立"],["國立彰化師範大學",6,"國立"],["中原大學",6,"私立"],["實踐大學",6,"私立"],["中國醫藥大學",5,"私立"],["國立陽明交通大學",5,"國立"],["國立中興大學",5,"國立"],["國立臺北大學",5,"國立"],["國立宜蘭大學",5,"國立"],["國立臺東大學",5,"國立"],["靜宜大學",5,"私立"],["真理大學",5,"私立"],["國立政治大學",4,"國立"],["國立中山大學",4,"國立"],["國立高雄師範大學",4,"國立"],["臺北市立大學",4,"市立"],["陸軍專科學校",4,"軍校"],["元智大學",4,"私立"],["義守大學",4,"私立"],["國防大學管理學院",3,"軍校"],["海軍軍官學校",3,"軍校"],["亞洲大學",3,"私立"],["國立金門大學",3,"國立"],["醒吾科技大學",3,"私立"],["臺北醫學大學",2,"私立"],["國立中正大學",2,"國立"],["國立嘉義大學",2,"國立"],["國立臺北教育大學",2,"國立"],["國立臺北藝術大學",2,"國立"],["國立屏東大學",2,"國立"],["國立臺灣藝術大學",2,"國立"],["國立臺灣體育運動大學",2,"國立"],["陸軍軍官學校",2,"軍校"],["臺灣警察專科學校",2,"警校"],["逢甲大學",2,"私立"],["大葉大學",2,"私立"],["玄奘大學",2,"私立"],["開南大學",2,"私立"],["臺北海洋科技大學",2,"私立"],["樹德科技大學",2,"私立"],["中山醫學大學",1,"私立"],["馬偕醫學院",1,"私立"],["高雄醫學大學",1,"私立"],["國立臺中教育大學",1,"國立"],["國立臺北科技大學",1,"國立"],["空軍軍官學校",1,"軍校"],["空軍航空技術學院",1,"軍校"],["國立高雄大學",1,"國立"],["國立臺南大學",1,"國立"],["國立臺南藝術大學",1,"國立"],["國立聯合大學",1,"國立"],["國立體育大學",1,"國立"],["國立屏東科技大學",1,"國立"],["國立雲林科技大學",1,"國立"],["長榮大學",1,"私立"],["英國皇家伯明罕音樂學院",1,"私立"],["慈濟科技大學",1,"私立"],["大同大學",1,"私立"],["大漢技術學院",1,"私立"],["中華大學",1,"私立"],["宏國德霖科技大學",1,"私立"],["南亞技術學院",1,"私立"],["南華大學",1,"私立"],["高苑科技大學",1,"私立"],["崑山科技大學",1,"私立"],["萬能科技大學",1,"私立"],["嘉南藥理大學",1,"私立"],["國立澎湖科技大學",1,"國立"]],"medList":[],"pharmList":[["中國醫藥大學","藥學系",3]],"linked":0,"byProg":[["普通班",0,0,null],["音樂班",0,0,null],["數理資優班",0,0,null],["體育班",0,0,null]]},"111":{"persons":338,"rows":338,"previous":0,"public":179,"publicPct":53.0,"types":{"國立":158,"市立":6,"軍校":14,"警校":1,"私立":159},"typesX":{"國立":158,"市立":6,"軍校":14,"警校":1,"私立":159},"med":0,"medPct":0.0,"pharm":4,"pharmPct":1.2,"ntu":11,"channels":[["申請入學",158],["分發入學",64],["繁星推薦",53],["獨立招生",25],["四技二專",20],["軍警校院",10],["特殊選才",8]],"unis":[["淡江大學",19,"私立"],["國立東華大學",18,"國立"],["輔仁大學",14,"私立"],["元智大學",12,"私立"],["國立臺灣大學",11,"國立"],["國立中興大學",10,"國立"],["世新大學",10,"私立"],["慈濟大學",10,"私立"],["東吳大學",8,"私立"],["逢甲大學",8,"私立"],["中國文化大學",8,"私立"],["義守大學",8,"私立"],["國立成功大學",7,"國立"],["國立中山大學",7,"國立"],["國立中央大學",7,"國立"],["國立臺北大學",7,"國立"],["中原大學",7,"私立"],["銘傳大學",7,"私立"],["國立臺灣師範大學",6,"國立"],["國立彰化師範大學",6,"國立"],["國立臺北教育大學",6,"國立"],["國立臺東大學",6,"國立"],["臺北市立大學",6,"市立"],["國立陽明交通大學",5,"國立"],["國立政治大學",5,"國立"],["國立中正大學",5,"國立"],["國立屏東大學",5,"國立"],["國立體育大學",5,"國立"],["空軍航空技術學院",5,"軍校"],["中山醫學大學",4,"私立"],["國立清華大學",4,"國立"],["國立高雄師範大學",4,"國立"],["嘉南藥理大學",4,"私立"],["陸軍軍官學校",4,"軍校"],["國立嘉義大學",4,"國立"],["國立臺灣海洋大學",4,"國立"],["東海大學",4,"私立"],["開南大學",4,"私立"],["中國醫藥大學",3,"私立"],["高雄醫學大學",3,"私立"],["國防大學管理學院",3,"軍校"],["國立金門大學",3,"國立"],["國立高雄大學",3,"國立"],["國立臺南大學",3,"國立"],["佛光大學",3,"私立"],["國立宜蘭大學",2,"國立"],["國立暨南國際大學",2,"國立"],["國立臺中教育大學",2,"國立"],["國立臺灣藝術大學",2,"國立"],["玄奘大學",2,"私立"],["長榮大學",2,"私立"],["真理大學",2,"私立"],["實踐大學",2,"私立"],["靜宜大學",2,"私立"],["美和科技大學",2,"私立"],["朝陽科技大學",2,"私立"],["聖約翰科技大學",2,"私立"],["長庚大學",1,"私立"],["空軍軍官學校",1,"軍校"],["國防大學理工學院",1,"軍校"],["國立海洋大學",1,"國立"],["國立臺灣體育大學",1,"國立"],["國立聯合大學",1,"國立"],["臺灣警察專科學校",1,"警校"],["國立虎尾科技大學",1,"國立"],["國立高雄科技大學",1,"國立"],["國立勤益科技大學",1,"國立"],["國立臺北護理健康大學",1,"國立"],["大同大學",1,"私立"],["亞洲大學",1,"私立"],["臺北海洋科技大學",1,"私立"],["明志科技大學",1,"私立"],["南臺科技大學",1,"私立"],["建國科技大學",1,"私立"],["慈濟科技大學",1,"私立"],["黎明技術學院",1,"私立"]],"medList":[],"pharmList":[["嘉南藥理大學","藥學系",3],["中國醫藥大學","藥學系",1]],"linked":0,"byProg":[["普通班",0,0,null],["音樂班",0,0,null],["數理資優班",0,0,null],["體育班",0,0,null]]},"112":{"persons":338,"rows":339,"previous":1,"public":192,"publicPct":56.8,"types":{"國立":170,"市立":8,"軍校":10,"警校":4,"私立":147},"typesX":{"國立":170,"市立":8,"軍校":10,"警校":4,"私立":146},"med":6,"medPct":1.8,"pharm":4,"pharmPct":1.2,"ntu":18,"channels":[["申請入學",159],["分發入學",82],["繁星推薦",49],["獨立招生",13],["軍警校院",13],["特殊選才",11],["四技二專",10],["其他",2]],"unis":[["國立東華大學",24,"國立"],["國立臺灣大學",18,"國立"],["淡江大學",15,"私立"],["東海大學",10,"私立"],["中原大學",10,"私立"],["慈濟大學",10,"私立"],["國立成功大學",10,"國立"],["世新大學",10,"私立"],["國立臺北大學",9,"國立"],["國立臺灣海洋大學",8,"國立"],["銘傳大學",8,"私立"],["國立中興大學",8,"國立"],["臺北市立大學",8,"市立"],["國立陽明交通大學",8,"國立"],["中國醫藥大學",7,"私立"],["輔仁大學",7,"私立"],["國立中正大學",7,"國立"],["義守大學",7,"私立"],["亞洲大學",6,"私立"],["國立政治大學",6,"國立"],["國立臺灣師範大學",6,"國立"],["國立臺灣藝術大學",5,"國立"],["國立聯合大學",5,"國立"],["元智大學",5,"私立"],["逢甲大學",5,"私立"],["國立臺北教育大學",5,"國立"],["國立中山大學",5,"國立"],["國立宜蘭大學",5,"國立"],["實踐大學",5,"私立"],["東吳大學",5,"私立"],["國立清華大學",5,"國立"],["國立臺灣體育運動大學",5,"國立"],["中國文化大學",5,"私立"],["國立高雄師範大學",4,"國立"],["長榮大學",4,"私立"],["空軍軍官學校",4,"軍校"],["臺灣警察專科學校",4,"警校"],["國立臺東大學",4,"國立"],["國立中央大學",4,"國立"],["長庚大學",3,"私立"],["靜宜大學",3,"私立"],["中山醫學大學",3,"私立"],["國立嘉義大學",3,"國立"],["國立屏東大學",3,"國立"],["高雄醫學大學",3,"私立"],["真理大學",2,"私立"],["海軍軍官學校",2,"軍校"],["國立臺北科技大學",2,"國立"],["國立高雄大學",2,"國立"],["國立勤益科技大學",2,"國立"],["國立臺中教育大學",2,"國立"],["馬偕醫學院",2,"私立"],["國防大學政治作戰學院",1,"軍校"],["國立臺南大學",1,"國立"],["國立彰化師範大學",1,"國立"],["陸軍軍官學校",1,"軍校"],["國立臺南藝術大學",1,"國立"],["南臺科技大學",1,"私立"],["中華醫事科技大學",1,"私立"],["長庚科技大學",1,"私立"],["大葉大學",1,"私立"],["國立暨南國際大學",1,"國立"],["大漢科技大學",1,"私立"],["大同大學",1,"私立"],["佛光大學",1,"私立"],["空軍航空技術學院",1,"軍校"],["朝陽科技大學",1,"私立"],["慈濟科技大學",1,"私立"],["嘉南藥理大學",1,"私立"],["國立臺北藝術大學",1,"國立"],["臺北醫學大學",1,"私立"],["國防大學",1,"軍校"],["弘光科技大學",1,"私立"]],"medList":[["國立陽明交通大學","醫學系",2],["國防大學","醫學系",1],["慈濟大學","醫學系",1],["臺北醫學大學","醫學系",1],["長庚大學","醫學系",1]],"pharmList":[["中國醫藥大學","藥學系",2],["嘉南藥理大學","藥學系",1],["高雄醫學大學","藥學系",1]],"linked":331,"byProg":[["普通班",284,148,52.1],["音樂班",9,8,88.9],["數理資優班",29,25,86.2],["體育班",9,8,88.9]]},"113":{"persons":344,"rows":344,"previous":4,"public":165,"publicPct":48.0,"types":{"國立":140,"市立":6,"軍校":7,"警校":12,"私立":179},"typesX":{"國立":140,"市立":6,"軍校":7,"警校":12,"私立":179},"med":5,"medPct":1.5,"pharm":2,"pharmPct":null,"ntu":17,"channels":[["申請入學",181],["分發入學",61],["繁星推薦",52],["獨立招生",22],["四技二專",15],["特殊選才",9],["軍警校院",3],["其他",1]],"unis":[["國立東華大學",32,"國立"],["淡江大學",27,"私立"],["國立臺灣大學",17,"國立"],["中國文化大學",15,"私立"],["慈濟大學",15,"私立"],["臺灣警察專科學校",12,"警校"],["東海大學",12,"私立"],["輔仁大學",10,"私立"],["國立臺灣海洋大學",9,"國立"],["逢甲大學",8,"私立"],["國立臺灣師範大學",8,"國立"],["國立臺北大學",7,"國立"],["國立成功大學",7,"國立"],["銘傳大學",7,"私立"],["亞洲大學",7,"私立"],["實踐大學",7,"私立"],["世新大學",7,"私立"],["東吳大學",6,"私立"],["元智大學",6,"私立"],["中原大學",6,"私立"],["臺北市立大學",6,"市立"],["國立中興大學",6,"國立"],["國立中正大學",5,"國立"],["義守大學",5,"私立"],["國立清華大學",5,"國立"],["長庚大學",5,"私立"],["國立高雄科技大學",4,"國立"],["國立政治大學",4,"國立"],["國立彰化師範大學",4,"國立"],["中山醫學大學",4,"私立"],["靜宜大學",4,"私立"],["佛光大學",4,"私立"],["國立陽明交通大學",4,"國立"],["長榮大學",3,"私立"],["中國醫藥大學",3,"私立"],["高雄醫學大學",3,"私立"],["國立中山大學",3,"國立"],["臺北城市科技大學",3,"私立"],["國立臺灣體育運動大學",3,"國立"],["國防大學醫學院",3,"軍校"],["國防大學政治作戰學院",2,"軍校"],["醒吾科技大學",2,"私立"],["國立臺北教育大學",2,"國立"],["國立宜蘭大學",2,"國立"],["國立聯合大學",2,"國立"],["國立臺灣藝術大學",2,"國立"],["國立嘉義大學",2,"國立"],["國立體育大學",2,"國立"],["國立臺東大學",2,"國立"],["國立中央大學",2,"國立"],["國立金門大學",1,"國立"],["國立高雄師範大學",1,"國立"],["國立勤益科技大學",1,"國立"],["長庚科技大學",1,"私立"],["輔英科技大學",1,"私立"],["馬偕醫學院",1,"私立"],["國立臺中教育大學",1,"國立"],["南臺科技大學",1,"私立"],["崑山科技大學",1,"私立"],["空軍軍官學校",1,"軍校"],["開南大學",1,"私立"],["陸軍專科學校",1,"軍校"],["大同大學",1,"私立"],["嘉南藥理大學",1,"私立"],["國立屏東大學",1,"國立"],["慈濟科技大學",1,"私立"],["國立臺北藝術大學",1,"國立"],["臺北醫學大學",1,"私立"]],"medList":[["國防大學醫學院","醫學系",2],["國立成功大學","醫學系",1],["國立陽明交通大學","醫學系",1],["臺北醫學大學","醫學系",1]],"pharmList":[["中國醫藥大學","藥學系",2]],"linked":334,"byProg":[["普通班",286,121,42.3],["音樂班",11,6,54.5],["數理資優班",31,27,87.1],["體育班",6,6,100.0]]},"114":{"persons":328,"rows":328,"previous":1,"public":178,"publicPct":54.3,"types":{"國立":144,"市立":4,"軍校":9,"警校":21,"私立":150},"typesX":{"國立":144,"市立":4,"軍校":9,"警校":21,"私立":150},"med":3,"medPct":0.9,"pharm":7,"pharmPct":2.1,"ntu":7,"channels":[["申請入學",155],["分發入學",59],["繁星推薦",51],["軍警校院",28],["獨立招生",19],["四技二專",9],["特殊選才",6],["未註明",1]],"unis":[["國立東華大學",28,"國立"],["淡江大學",20,"私立"],["臺灣警察專科學校",19,"警校"],["慈濟大學",16,"私立"],["實踐大學",11,"私立"],["銘傳大學",10,"私立"],["逢甲大學",9,"私立"],["中國文化大學",9,"私立"],["國立臺灣師範大學",9,"國立"],["中原大學",8,"私立"],["元智大學",8,"私立"],["國立臺東大學",8,"國立"],["輔仁大學",8,"私立"],["國立臺灣大學",7,"國立"],["東吳大學",6,"私立"],["國立政治大學",6,"國立"],["國立臺灣海洋大學",6,"國立"],["國立清華大學",6,"國立"],["國立高雄師範大學",6,"國立"],["國立中央大學",6,"國立"],["國立中興大學",5,"國立"],["國立陽明交通大學",5,"國立"],["中山醫學大學",5,"私立"],["國立臺北大學",5,"國立"],["國立臺北教育大學",5,"國立"],["國防大學管理學院",5,"軍校"],["國立臺灣體育運動大學",4,"國立"],["國立中山大學",4,"國立"],["國立屏東大學",4,"國立"],["義守大學",4,"私立"],["中國醫藥大學",4,"私立"],["國立彰化師範大學",4,"國立"],["朝陽科技大學",4,"私立"],["臺北市立大學",4,"市立"],["世新大學",4,"私立"],["國立成功大學",4,"國立"],["國立嘉義大學",3,"國立"],["國立聯合大學",3,"國立"],["國立高雄大學",3,"國立"],["長庚科技大學",3,"私立"],["國立體育大學",3,"國立"],["國立暨南國際大學",3,"國立"],["佛光大學",2,"私立"],["靜宜大學",2,"私立"],["國立宜蘭大學",2,"國立"],["東海大學",2,"私立"],["國立中正大學",2,"國立"],["陸軍軍官學校",2,"軍校"],["高雄醫學大學",2,"私立"],["亞洲大學",2,"私立"],["中央警察大學",1,"警校"],["長榮大學",1,"私立"],["臺北基督書院",1,"私立"],["國立臺灣藝術大學",1,"國立"],["大同大學",1,"私立"],["萬能科技大學",1,"私立"],["中華大學",1,"私立"],["元培醫事科技大學",1,"私立"],["真理大學",1,"私立"],["南華大學",1,"私立"],["國立臺南大學",1,"國立"],["正修科技大學",1,"私立"],["國防大學政治作戰學院",1,"軍校"],["臺北醫學大學",1,"私立"],["廣州中醫藥大學",1,"私立"],["臺北海洋科技大學",1,"私立"],["國防大學醫學院",1,"軍校"],["國立臺中教育大學",1,"國立"]],"medList":[["中國醫藥大學","醫學系",1],["中山醫學大學","醫學系",1],["國防大學醫學院","醫學系",1]],"pharmList":[["中國醫藥大學","藥學系",3],["慈濟大學","藥學系",2],["臺北醫學大學","藥學系藥學組",1],["高雄醫學大學","藥學系",1]],"linked":320,"byProg":[["普通班",280,140,50.0],["音樂班",4,null,null],["數理資優班",24,19,79.2],["體育班",12,10,83.3]]}},"cohorts":[109,110,111],"inspire":{"0":{"entryYears":[109,110,111],"listYears":[112,113,114],"all":{"n":1097,"admitted":980,"public":517,"publicPct":47.1,"admittedPct":89.3},"c":{"n":114,"admitted":90,"public":43,"publicPct":37.7,"admittedPct":78.9},"special":{"n":53,"admitted":37,"public":28,"publicPct":52.8,"admittedPct":69.8},"cOrSpecial":{"n":167,"admitted":127,"public":71,"publicPct":42.5,"admittedPct":76.0},"bands":[["5A以上",{"n":97,"admitted":93,"public":73,"publicPct":75.3,"admittedPct":95.9}],["5B++",{"n":160,"admitted":154,"public":108,"publicPct":67.5,"admittedPct":96.2}],["5B+",{"n":218,"admitted":202,"public":100,"publicPct":45.9,"admittedPct":92.7}],["5B",{"n":455,"admitted":404,"public":165,"publicPct":36.3,"admittedPct":88.8}],["含C",{"n":114,"admitted":90,"public":43,"publicPct":37.7,"admittedPct":78.9}],["沒有會考成績",{"n":53,"admitted":37,"public":28,"publicPct":52.8,"admittedPct":69.8}]],"subjects":[["國文",15,7,46.7],["英文",60,25,41.7],["數學",51,19,37.3],["社會",4,null,null],["自然",22,10,45.5]],"specialByProg":[["普通班",{"n":11,"admitted":10,"public":4,"publicPct":36.4,"admittedPct":90.9}],["音樂班",{"n":0,"admitted":0,"public":0,"publicPct":null,"admittedPct":null}],["數理資優班",{"n":0,"admitted":0,"public":0,"publicPct":null,"admittedPct":null}],["體育班",{"n":42,"admitted":27,"public":24,"publicPct":57.1,"admittedPct":64.3}]]},"109":{"entryYears":[109],"listYears":[112],"all":{"n":363,"admitted":331,"public":189,"publicPct":52.1,"admittedPct":91.2},"c":{"n":35,"admitted":30,"public":10,"publicPct":28.6,"admittedPct":85.7},"special":{"n":17,"admitted":13,"public":10,"publicPct":58.8,"admittedPct":76.5},"cOrSpecial":{"n":52,"admitted":43,"public":20,"publicPct":38.5,"admittedPct":82.7},"bands":[["5A以上",{"n":37,"admitted":35,"public":26,"publicPct":70.3,"admittedPct":94.6}],["5B++",{"n":63,"admitted":58,"public":45,"publicPct":71.4,"admittedPct":92.1}],["5B+",{"n":86,"admitted":81,"public":46,"publicPct":53.5,"admittedPct":94.2}],["5B",{"n":125,"admitted":114,"public":52,"publicPct":41.6,"admittedPct":91.2}],["含C",{"n":35,"admitted":30,"public":10,"publicPct":28.6,"admittedPct":85.7}],["沒有會考成績",{"n":17,"admitted":13,"public":10,"publicPct":58.8,"admittedPct":76.5}]],"subjects":[["國文",3,0,0.0],["英文",18,3,16.7],["數學",15,7,46.7],["社會",3,null,null],["自然",8,4,50.0]],"specialByProg":[["普通班",{"n":5,"admitted":4,"public":null,"publicPct":null,"admittedPct":80.0}],["音樂班",{"n":0,"admitted":0,"public":0,"publicPct":null,"admittedPct":null}],["數理資優班",{"n":0,"admitted":0,"public":0,"publicPct":null,"admittedPct":null}],["體育班",{"n":12,"admitted":9,"public":8,"publicPct":66.7,"admittedPct":75.0}]]},"110":{"entryYears":[110],"listYears":[113],"all":{"n":374,"admitted":330,"public":158,"publicPct":42.2,"admittedPct":88.2},"c":{"n":32,"admitted":21,"public":12,"publicPct":37.5,"admittedPct":65.6},"special":{"n":15,"admitted":9,"public":6,"publicPct":40.0,"admittedPct":60.0},"cOrSpecial":{"n":47,"admitted":30,"public":18,"publicPct":38.3,"admittedPct":63.8},"bands":[["5A以上",{"n":38,"admitted":38,"public":33,"publicPct":86.8,"admittedPct":100.0}],["5B++",{"n":49,"admitted":49,"public":30,"publicPct":61.2,"admittedPct":100.0}],["5B+",{"n":77,"admitted":70,"public":30,"publicPct":39.0,"admittedPct":90.9}],["5B",{"n":163,"admitted":143,"public":47,"publicPct":28.8,"admittedPct":87.7}],["含C",{"n":32,"admitted":21,"public":12,"publicPct":37.5,"admittedPct":65.6}],["沒有會考成績",{"n":15,"admitted":9,"public":6,"publicPct":40.0,"admittedPct":60.0}]],"subjects":[["國文",6,4,66.7],["英文",16,8,50.0],["數學",16,5,31.2],["社會",0,0,null],["自然",3,0,0.0]],"specialByProg":[["普通班",{"n":3,"admitted":3,"public":0,"publicPct":0.0,"admittedPct":100.0}],["音樂班",{"n":0,"admitted":0,"public":0,"publicPct":null,"admittedPct":null}],["數理資優班",{"n":0,"admitted":0,"public":0,"publicPct":null,"admittedPct":null}],["體育班",{"n":12,"admitted":6,"public":6,"publicPct":50.0,"admittedPct":50.0}]]},"111":{"entryYears":[111],"listYears":[114],"all":{"n":360,"admitted":319,"public":170,"publicPct":47.2,"admittedPct":88.6},"c":{"n":47,"admitted":39,"public":21,"publicPct":44.7,"admittedPct":83.0},"special":{"n":21,"admitted":15,"public":12,"publicPct":57.1,"admittedPct":71.4},"cOrSpecial":{"n":68,"admitted":54,"public":33,"publicPct":48.5,"admittedPct":79.4},"bands":[["5A以上",{"n":22,"admitted":20,"public":14,"publicPct":63.6,"admittedPct":90.9}],["5B++",{"n":48,"admitted":47,"public":33,"publicPct":68.8,"admittedPct":97.9}],["5B+",{"n":55,"admitted":51,"public":24,"publicPct":43.6,"admittedPct":92.7}],["5B",{"n":167,"admitted":147,"public":66,"publicPct":39.5,"admittedPct":88.0}],["含C",{"n":47,"admitted":39,"public":21,"publicPct":44.7,"admittedPct":83.0}],["沒有會考成績",{"n":21,"admitted":15,"public":12,"publicPct":57.1,"admittedPct":71.4}]],"subjects":[["國文",6,3,50.0],["英文",26,14,53.8],["數學",20,7,35.0],["社會",null,null,null],["自然",11,6,54.5]],"specialByProg":[["普通班",{"n":3,"admitted":3,"public":null,"publicPct":null,"admittedPct":100.0}],["音樂班",{"n":0,"admitted":0,"public":0,"publicPct":null,"admittedPct":null}],["數理資優班",{"n":0,"admitted":0,"public":0,"publicPct":null,"admittedPct":null}],["體育班",{"n":18,"admitted":12,"public":10,"publicPct":55.6,"admittedPct":66.7}]]}},"levels":["A++","A+","A","B++","B+","B","C"]};
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const MASK = '<span class="masked">&lt;3</span>';
+  const N = v => v==null ? MASK : v;
+  const PC = v => v==null ? '–' : v.toFixed(1)+'%';
+  const niceMax = v => [5,10,20,25,40,50,80,100,150,200,250,300,400,500].find(s=>s>=v) || Math.ceil(v/100)*100;
+  const tl = (label, val, color) => `<div class="tl"><span>${color?`<i class="dot" style="background:${color}"></i>`:''}${label}</span><span class="num">${val}</span></div>`;
+  const tile = (k,v,d) => `<div class="tile"><span class="k">${k}</span><span class="v">${v}</span><span class="d">${d}</span></div>`;
+  const dpp = v => v==null||isNaN(v) ? '' : v>0.05 ? `<span class="delta up">▲ ${v.toFixed(1)} 個百分點</span>` : v<-0.05 ? `<span class="delta down">▼ ${(-v).toFixed(1)} 個百分點</span>` : '<span class="delta" style="color:var(--ink-3)">—</span>';
+  const TYPES = A.types, TCOL = {'國立':'var(--s0)','市立':'var(--s2)','軍校':'var(--s5)','警校':'var(--s3)','私立':'var(--line)'};
+  const YEARS = [...A.years].sort((a,b)=>b-a);  // 新到舊
+  const yLabel = y => `${y} 學年度（${y+1911} 年入學大學）`;
+  const S = {year:0, cohort:0};
+  try{ const s = JSON.parse(localStorage.getItem('adm')||'{}'); for(const k in S) if(typeof s[k]===typeof S[k]) S[k] = s[k]; }catch(e){}
+  if(S.year && !YEARS.includes(S.year)) S.year = 0;
+  if(S.cohort && !A.cohorts.includes(S.cohort)) S.cohort = 0;
+
+  function ticks(el, max, pctAxis){ el.innerHTML = [0,.25,.5,.75,1].map(f=>`<span class="num" style="left:${f*100}%">${pctAxis ? f*100+'%' : Math.round(max*f)}</span>`).join(''); }
+  function drawRows(el, ticksEl, rows, max, pctAxis){
+    ticks(ticksEl, max, pctAxis);
+    if(!rows.length){ el.innerHTML = '<div class="empty">沒有資料</div>'; return; }
+    el.innerHTML = rows.map((r,i)=>{
+      const segs = (r.segs||[]).filter(s=>s[0]>0).map(s=>`<i style="width:calc(${s[0]/max*100}% - 2px);background:${s[1]}"></i>`).join('');
+      return `<div class="row${r.cls?' '+r.cls:''}" data-i="${i}" tabindex="0"><div class="name">${r.label}<em>${r.sub||''}</em></div><div class="track"><div class="stack">${segs}</div></div><div class="val num">${r.val}${r.valSub!=null?`<span>${r.valSub}</span>`:''}</div></div>`;
+    }).join('');
+    el.querySelectorAll('.row').forEach(n=>{ const r = rows[+n.dataset.i]; if(r.tip) bindTip(n, r.tip); });
+  }
+  let ready = false;
+  function setup(){
+    if(ready) return; ready = true;
+    $('adYear').innerHTML = '<option value="0">全部（各年比較）</option>' + YEARS.map(y=>`<option value="${y}">${yLabel(y)}</option>`).join('');
+    $('adYear').onchange = ()=>{ S.year = +$('adYear').value; renderAdmit(); };
+    $('inYear').innerHTML = `<option value="0">全部（${A.cohorts[0]}–${A.cohorts.at(-1)} 學年度入學）</option>` + [...A.cohorts].reverse().map(y=>`<option value="${y}">${y} 學年度入學・${y+3} 學年度榜單</option>`).join('');
+    $('inYear').onchange = ()=>{ S.cohort = +$('inYear').value; renderInspire(); };
+    $('adTypeLegend').innerHTML = TYPES.map(t=>`<span><i class="dot" style="background:${TCOL[t]}"></i>${t}</span>`).join('');
+  }
+  const save = () => { try{ localStorage.setItem('adm', JSON.stringify(S)); }catch(e){} };
+
+  // ---------- 大學錄取 ----------
+  function renderAdmit(){
+    setup(); $('adYear').value = S.year;
+    const Y = S.year || YEARS[0], v = A.byYear[Y], prev = A.byYear[Y-1];
+    $('adNote').innerHTML = `資料來源：本校 ${A.years[0]}–${A.years.at(-1)} 學年度大學多元入學總榜單。${S.year ? `<b>${yLabel(Y)}</b>` : `摘要為最新的 <b>${yLabel(Y)}</b>`}：榜單上 ${v.persons} 人（${v.rows} 筆錄取${v.previous ? `，其中往屆畢業生 ${v.previous} 人` : ''}）。` +
+      `<b>國立</b>含國立、市立大學、軍校、警校；<b>醫學系</b>、<b>藥學系</b>含公私立。百分比的分母都是當年榜單上的錄取人數，一人錄取多所只算一次。`;
+    $('adTiles').innerHTML = [
+      tile('錄取人數', `<span class="num">${v.persons}</span><small>人</small>`, prev ? `前一年 ${prev.persons} 人` : yLabel(Y)),
+      tile('國立大學（含市立、軍警）', `<span class="num">${PC(v.publicPct)}</span>`, `${v.public} 人` + (prev ? `　${dpp(v.publicPct-prev.publicPct)}` : '')),
+      tile('醫學系', `<span class="num">${v.med}</span><small>人</small>`, `${PC(v.medPct)}` + (prev ? `・前一年 ${prev.med} 人` : '')),
+      tile('藥學系', `<span class="num">${v.pharm}</span><small>人</small>`, `${PC(v.pharmPct)}` + (prev ? `・前一年 ${prev.pharm} 人` : '')),
+    ].join('');
+    // 各年
+    drawRows($('adYears'), $('adYTicks'), YEARS.map(y=>{ const b = A.byYear[y];
+      return {label:`${y} 學年度`, sub:`${b.persons} 人`, cls: y===S.year ? 'hi' : '', val: PC(b.publicPct),
+        segs: TYPES.filter(t=>t!=='私立').map(t=>[b.typesX[t]/b.persons*100, TCOL[t]]),
+        tip:`<b>${yLabel(y)}</b>` + TYPES.map(t=>tl(t, `${b.typesX[t]} 人・${(b.typesX[t]/b.persons*100).toFixed(1)}%`, TCOL[t])).join('')}; }), 100, true);
+    $('adYearTbl').innerHTML = `<thead><tr><th>榜單學年度</th><th>錄取人數</th><th>國立（含市立、軍警）</th><th>國立</th><th>市立</th><th>軍校</th><th>警校</th><th>醫學系</th><th>藥學系</th><th>臺大</th></tr></thead><tbody>` +
+      YEARS.map(y=>{ const b = A.byYear[y];
+        return `<tr${y===S.year?' style="font-weight:700"':''}><th scope="row">${y}</th><td class="num">${b.persons}</td><td class="num">${b.public}<span class="muted">${PC(b.publicPct)}</span></td>${['國立','市立','軍校','警校'].map(t=>`<td class="num">${b.typesX[t]}</td>`).join('')}<td class="num">${b.med}<span class="muted">${PC(b.medPct)}</span></td><td class="num">${b.pharm}<span class="muted">${PC(b.pharmPct)}</span></td><td class="num">${b.ntu}</td></tr>`; }).join('') + '</tbody>';
+    $('adOne').hidden = !S.year;
+    if(S.year){
+      const top = v.unis.slice(0, 20);
+      $('adUniH').textContent = `${Y} 學年度錄取學校`;
+      $('adUniSub').textContent = `前 ${top.length} 所（共 ${v.unis.length} 所），以人計，顏色表示學校類別`;
+      drawRows($('adUnis'), $('adUTicks'), top.map(([u,c,t])=>({label:esc(u), sub:t, val:c, valSub:(c/v.persons*100).toFixed(1)+'%', segs:[[c, TCOL[t]]]})), niceMax(top[0] ? top[0][1] : 1));
+      const chMax = Math.max(1, ...v.channels.map(c=>c[1]));
+      $('adCh').innerHTML = v.channels.map(([c,n])=>`<div class="crow"><div class="top"><b>${esc(c)}</b><span class="num">${n} 人・${(n/v.persons*100).toFixed(1)}%</span></div><div class="cbar"><i style="width:${n/chMax*100}%"></i></div></div>`).join('');
+      $('adProgSub').textContent = v.linked ? `只含能對應到在校資料的學生（${v.linked} 人）；國立含市立、軍警` : '這一年的學生不在資料庫中（只收 109 學年度以後入學者）';
+      $('adProg').innerHTML = v.linked ? `<thead><tr><th>班別</th><th>錄取人數</th><th>國立</th></tr></thead><tbody>` +
+        v.byProg.map(([p,n,pub,pc])=>`<tr><th scope="row">${p}</th><td class="num">${N(n)}</td><td class="num">${N(pub)}<span class="muted">${PC(pc)}</span></td></tr>`).join('') + '</tbody>' : '';
+      const list = rows => rows.length ? `<thead><tr><th>學校</th><th>科系</th><th class="num">人數</th></tr></thead><tbody>` + rows.map(([u,d,c])=>`<tr><td>${esc(u)}</td><td>${esc(d)}</td><td class="num">${c}</td></tr>`).join('') + '</tbody>' : '<tbody><tr><td class="empty">這一年沒有</td></tr></tbody>';
+      $('adMed').innerHTML = list(v.medList);
+      $('adPharm').innerHTML = list(v.pharmList);
+    }
+    save();
+  }
+
+  // ---------- 逆轉勝 ----------
+  function renderInspire(){
+    setup(); $('inYear').value = S.cohort;
+    const all = A.inspire['0'], v = A.inspire[String(S.cohort)];
+    const yrs = v.entryYears, lys = v.listYears;
+    const heroN = all.cOrSpecial.public;
+    $('inHero').innerHTML = `<div class="big num">${heroN==null?'&lt;3':heroN}<small>人</small></div>
+      <h2>會考有 C、或從特殊管道進來的學長姐，畢業時考上了國立大學</h2>
+      <p>${all.entryYears[0]}–${all.entryYears.at(-1)} 學年度入學、已畢業的三屆學長姐中，會考至少一科拿 C，或沒有會考成績、從體育班、音樂班等特殊管道入學的共 ${N(all.cOrSpecial.n)} 人，其中 <b>${N(heroN)} 人</b>在畢業當年考上國立大學（含市立大學、軍校、警校），比例 <b>${PC(all.cOrSpecial.publicPct)}</b>；全體畢業生是 ${PC(all.all.publicPct)}。</p>
+      <p class="quote">入學時的分數只是起點。三年後走到哪裡，看的是這三年怎麼走。</p>`;
+    const scope = S.cohort ? `${S.cohort} 學年度入學（${S.cohort+3} 學年度榜單）` : `${yrs[0]}–${yrs.at(-1)} 學年度入學（${lys[0]}–${lys.at(-1)} 學年度榜單）`;
+    $('inNote').innerHTML = `<b>${scope}</b>：只看<b>畢業當年</b>（應屆）的錄取結果，重考後的錄取不計。國立含市立大學、軍校、警校。` +
+      `「會考含 C」指入學時國中教育會考至少一科為 C；「特殊管道」指沒有會考成績的學生（體育班、音樂班、重讀等）。` + (A.K>1 ? '人數 1–2 人顯示為「<3」。' : '');
+    const card = (title, sub, g, accent) => `<div class="pcard" style="cursor:default${accent?';border-color:var(--accent)':''}">
+      <span class="pname">${title}<small>${sub}</small></span>
+      <span class="pbig"><span class="num">${N(g.public)}</span><small>人考上國立・${PC(g.publicPct)}</small></span>
+      <span class="pfacts"><span><em>畢業生</em><b class="num">${N(g.n)} 人</b></span><span><em>應屆錄取大學</em><b class="num">${N(g.admitted)} 人</b></span><span><em>錄取率</em><b class="num">${PC(g.admittedPct)}</b></span><span><em>國立比例</em><b class="num">${PC(g.publicPct)}</b></span></span></div>`;
+    $('inCards').innerHTML = card('會考含 C', '入學時至少一科 C', v.c, true) + card('特殊管道入學', '沒有會考成績', v.special, true) + card('全體畢業生', '對照', v.all, false);
+    $('inBandSub').textContent = `${scope}；依入學時的會考總等第級距，畢業當年考上國立大學的比例（橫條）與人數`;
+    drawRows($('inBands'), $('inBTicks'), v.bands.map(([b,g])=>({label:b, sub:`${N(g.n)} 人`, cls:(b==='含C'||b==='沒有會考成績')?'hi':'', val:PC(g.publicPct), valSub:null,
+      segs: g.publicPct==null ? [] : [[g.publicPct, (b==='含C'||b==='沒有會考成績') ? 'var(--accent)' : 'var(--line)']],
+      tip:`<b>${b}</b>` + tl('畢業生', N(g.n)+' 人') + tl('考上國立', N(g.public)+' 人') + tl('比例', PC(g.publicPct))})), 100, true);
+    $('inSubj').innerHTML = `<thead><tr><th>科目拿 C</th><th class="num">人數</th><th class="num">考上國立</th><th class="num">比例</th></tr></thead><tbody>` +
+      v.subjects.map(([s,n,pub,pc])=>`<tr><th scope="row">${s}</th><td class="num">${N(n)}</td><td class="num"><b>${N(pub)}</b></td><td class="num">${PC(pc)}</td></tr>`).join('') + '</tbody>';
+    $('inProg').innerHTML = `<thead><tr><th>班別</th><th class="num">人數</th><th class="num">考上國立</th><th class="num">比例</th></tr></thead><tbody>` +
+      v.specialByProg.filter(([p,g])=>g.n!==0).map(([p,g])=>`<tr><th scope="row">${p}</th><td class="num">${N(g.n)}</td><td class="num"><b>${N(g.public)}</b></td><td class="num">${PC(g.publicPct)}</td></tr>`).join('') + '</tbody>';
+    if(A.detail){
+      $('inDestSub').textContent = `${scope}；畢業當年考上的國立大學（含市立、軍警）與科系，不含姓名`;
+      const col = (title, g) => `<div class="destcol"><h3>${title}（${N(g.public)} 人）</h3>${g.dest && g.dest.length ? `<ul>${g.dest.map(([u,d,c])=>`<li>${esc(u)} ${esc(d)}${c>1?`<span>${c} 人</span>`:''}</li>`).join('')}</ul>` : '<div class="empty">沒有</div>'}</div>`;
+      $('inDest').innerHTML = col('會考含 C', v.c) + col('特殊管道入學', v.special);
+    } else {
+      $('inDestSub').textContent = '為保護學生隱私，公開版不列出個別學生考上的學校與科系。';
+      $('inDest').innerHTML = '';
+    }
+    save();
+  }
+  return {renderAdmit, renderInspire,
+    ledeAdmit: ()=>`本校 ${A.years[0]}–${A.years.at(-1)} 學年度大學多元入學榜單：每年錄取國立大學（含市立、軍校、警校）、醫學系、藥學系的人數與比例，以及錄取學校、管道。`,
+    ledeInspire: ()=>'會考有 C、或從特殊管道入學的學長姐，三年後一樣考上國立大學。'};
 })();
 </script>
 
@@ -1083,6 +1278,8 @@ const VIEWS = {
   exam:['入學成績分布', ()=>`依入學年度查看國中教育會考五科等級（A++ 最高，依序為 A+、A、B++、B+、B、C），以及依最低一科分出的總等第級距（${D.examYears.at(-1).roc}–${D.examYears[0].roc} 學年度入學）。`, rExam],
   gsat:['會考成績能預測學測嗎？', ()=>`用已畢業的 ${GY.at(-1)}–${GY[0]} 學年度入學學生，比較入學時的國中教育會考等級和三年後的大學學測級分。`, rGsat],
   gyears:['學測各屆表現', ()=>GYT.lede(), rGYears],
+  admit:['大學錄取', ()=>ADM.ledeAdmit(), ()=>ADM.renderAdmit()],
+  inspire:['逆轉勝：起點不等於終點', ()=>ADM.ledeInspire(), ()=>ADM.renderInspire()],
 };
 function render(){
   hideTip();
