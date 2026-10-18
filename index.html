@@ -1,3 +1,11 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="國立花蓮高級中學學生來源與成績統計：畢業國中、特殊班、原住民族別、會考與學測、學測五標、大學錄取與逆轉勝。只含彙整統計。">
+<meta name="theme-color" content="#f7f8f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131615" media="(prefers-color-scheme: dark)">
 <title>花中學生來源與成績</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -216,7 +224,55 @@ table.gmat td:first-child,table.gmat th:first-child{text-align:left;padding-left
 table.gmat td.heat{border-bottom:2px solid var(--surface);border-left:2px solid var(--surface)}
 table.gcorr td.heat{border-bottom:2px solid var(--surface);border-left:2px solid var(--surface)}
 .gsubhead{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
+
+/* ===== 手機與電腦的響應式調整（responsive.css，由產生程式插入，內部版與公開版共用） ===== */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+/* 分頁列：固定在畫面上方，放不下時左右滑動（不換行） */
+.tabs{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
+  position:sticky;top:env(safe-area-inset-top, 0px);z-index:8;background:var(--bg);
+  margin-inline:-16px;padding-inline:16px;padding-top:4px}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none}
+.filters{top:calc(env(safe-area-inset-top, 0px) + 50px)}
+select{max-width:100%}
+/* 格線版面裡的子元素預設不會比內容窄，寬表格會把整頁撐開；設 min-width:0 讓表格在自己的容器內捲動 */
+.view > *, .panel > *, .grid2 > *, .side > *, .tiles > *, .pcards > *{min-width:0}
+/* 表格：可以左右捲動時顯示提示，並固定第一欄 */
+.tablewrap{-webkit-overflow-scrolling:touch}
+.tablewrap.scrollable::before{content:"← 左右滑動看完整表格 →";display:block;font-size:12px;color:var(--ink-3);margin-bottom:4px;text-align:center}
+.tablewrap.scrollable th:first-child,.tablewrap.scrollable td:first-child{position:sticky;left:0;z-index:1;background:var(--surface);box-shadow:1px 0 0 var(--line)}
+.chartwrap{overflow:hidden}
+@media (hover:none){.row:hover{background:transparent}}
+@media (max-width:760px){
+  body{padding-block:14px 40px}
+  .wrap{gap:20px}
+  h2{font-size:18px}
+  .lede{font-size:14.5px}
+  .panel{padding:14px 12px 12px;gap:12px}
+  .filters{padding:12px;gap:10px}
+  .fgroup{flex:1 1 100%;min-width:0}
+  .seg{width:100%}
+  .seg button{padding:8px 12px;font-size:14px}
+  select{width:100%;font-size:16px;padding:10px 12px}  /* 16px 避免 iOS 點選時自動放大畫面 */
+  .tiles{gap:10px}
+  .tile{padding:12px}
+  .tile .v{font-size:23px}
+  .tile .d{font-size:12px}
+  table{font-size:13px}
+  th,td{padding:7px 8px}
+  .legend{gap:8px 12px;font-size:12.5px}
+  .pcard{padding:14px}
+  .pbig{font-size:28px}
+  .tip{max-width:min(300px, calc(100vw - 24px))}
+  .exam-note,.privacy{font-size:13px}
+}
+@media (max-width:340px){
+  .tiles{grid-template-columns:minmax(0,1fr)}
+}
 </style>
+</head>
+<body>
 <style>
 .masked{color:var(--ink-3);font-size:.92em}
 .privacy{font-size:12.5px;color:var(--ink-2);background:var(--chip);border-radius:8px;padding:10px 14px;margin:0}
@@ -1298,3 +1354,36 @@ if(!VIEWS[state.view]) state.view = 'overview';
 let rz; addEventListener('resize', ()=>{ clearTimeout(rz); rz = setTimeout(()=>{ if(['tribe','gsat','gyears'].includes(state.view)) render(); }, 150); });
 render();
 </script>
+
+
+<script>
+/* 手機與電腦共用的操作輔助（mobile.part.html，由產生程式加在頁面最後） */
+(()=>{
+  // 表格寬於畫面時，加上 scrollable 樣式（顯示「左右滑動」提示並固定第一欄）
+  const markTables = () => document.querySelectorAll('.tablewrap').forEach(w =>
+    w.classList.toggle('scrollable', w.scrollWidth > w.clientWidth + 2));
+  // 分頁列放不下時，把目前的分頁捲到中間
+  const showActiveTab = () => {
+    const b = document.querySelector('.tabs [aria-selected="true"]');
+    if(!b) return;
+    const bar = b.parentElement;
+    if(bar.scrollWidth > bar.clientWidth) bar.scrollTo({left: b.offsetLeft - (bar.clientWidth - b.offsetWidth)/2, behavior:'smooth'});
+  };
+  let t;
+  const later = () => { clearTimeout(t); t = setTimeout(()=>{ markTables(); showActiveTab(); }, 80); };
+  new MutationObserver(later).observe(document.body, {childList:true, subtree:true, attributes:true, attributeFilter:['hidden','aria-selected']});
+  addEventListener('resize', later);
+  later();
+  // 觸控裝置沒有滑鼠移入：點一下長條或圖表顯示詳細數字，點其他地方關閉
+  if(matchMedia('(hover: none)').matches){
+    document.addEventListener('click', e => {
+      const el = e.target.closest('.row, .band');
+      if(el) el.dispatchEvent(new PointerEvent('pointermove', {clientX:e.clientX, clientY:e.clientY, pointerType:'touch'}));
+      else if(typeof hideTip === 'function') hideTip();
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
